@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,6 +11,10 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import AlunoApp from "./AlunoApp";
+
 
 type AuthTab = "login" | "register";
 type Role = "aluno" | "professor";
@@ -119,6 +122,7 @@ export default function IndexScreen() {
         setAgreeTerms(false);
       } else {
         if (data.token) setAuthToken(data.token);
+        if (data.user?.name) setName(data.user.name);
         setMessage(`Login realizado com sucesso! Bem-vindo(a), ${data.user?.name || name || "ao QuizFlow"}.`);
         setMessageIsError(false);
       }
@@ -134,10 +138,18 @@ export default function IndexScreen() {
       setLoading(false);
     }
   }
-
+  if (authToken && role === "aluno") {
+    return (
+      <AlunoApp
+        userName={name || "Aluno"}
+        authToken={authToken}
+        onLogout={() => setAuthToken(null)}
+      />
+    );
+  }
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F8FF" />
+      <StatusBar barStyle="dark-content" />
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : undefined}

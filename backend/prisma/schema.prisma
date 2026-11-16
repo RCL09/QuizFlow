@@ -8,11 +8,13 @@ datasource db {
   provider = "postgresql"
 }
 
+// Perfis de usuário
 enum UserRole {
   ALUNO
   PROFESSOR
 }
 
+// Tipos de questões disponíveis
 enum TipoQuestao {
   MULTIPLA_ESCOLHA
   VERDADEIRO_FALSO
@@ -21,6 +23,27 @@ enum TipoQuestao {
   ORDENACAO
 }
 
+// Momento em que o aluno recebe o feedback
+enum ModoFeedback {
+  IMEDIATO
+  AO_FINALIZAR
+  DESATIVADO
+}
+
+// Forma de correção das questões textuais
+enum ModoCorrecaoTexto {
+  AUTOMATICA
+  MANUAL
+}
+
+// Situação de cada tentativa
+enum StatusTentativa {
+  EM_ANDAMENTO
+  AGUARDANDO_CORRECAO
+  CONCLUIDA
+}
+
+// Usuários
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -31,14 +54,25 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Turmas
   turmasCriadas Turma[]      @relation("ProfessorTurmas")
   turmasAluno   TurmaAluno[]
-  tentativas    Tentativa[]
+
+  // Atividades e tentativas
+  tentativas Tentativa[]
+
+  // Liberações de novas tentativas
+  liberacoesComoAluno     LiberacaoTentativa[] @relation("AlunoLiberacoes")
+  liberacoesComoProfessor LiberacaoTentativa[] @relation("ProfessorLiberacoes")
+
+  // Correções realizadas pelo professor
+  respostasCorrigidas Resposta[] @relation("ProfessorResposta")
 
   @@index([role])
   @@map("users")
 }
 
+// Turmas
 model Turma {
   id          String   @id @default(uuid())
   nome        String
@@ -56,6 +90,7 @@ model Turma {
   @@map("turmas")
 }
 
+// Vínculo entre alunos e turmas
 model TurmaAluno {
   id       String   @id @default(uuid())
   alunoId  String
@@ -70,34 +105,52 @@ model TurmaAluno {
   @@map("turmas_alunos")
 }
 
+// Atividades criadas pelos professores
 model Atividade {
-  id               String   @id @default(uuid())
+  id               String       @id @default(uuid())
   titulo           String
   descricao        String?
-  mostrarResultado Boolean  @default(false)
-  publicada        Boolean  @default(false)
-  turmaId          String
-  criadaEm         DateTime @default(now())
-  atualizadaEm     DateTime @updatedAt
+  mostrarResultado Boolean      @default(false)
+  publicada        Boolean      @default(false)
+  modoFeedback     ModoFeedback @default(AO_FINALIZAR)
 
-  turma      Turma       @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  turmaId      String
+  criadaEm     DateTime @default(now())
+  atualizadaEm DateTime @updatedAt
+
+  turma      Turma                @relation(fields: [turmaId], references: [id], onDelete: Cascade)
   questoes   Questao[]
   tentativas Tentativa[]
+  liberacoes LiberacaoTentativa[]
 
   @@index([turmaId])
   @@map("atividades")
 }
 
+// Questões das atividades
 model Questao {
-  id              String      @id @default(uuid())
-  enunciado       String
-  tipo            TipoQuestao
-  configuracao    Json
-  respostaCorreta Json
-  valor           Float       @default(1)
-  ordem           Int
-  atividadeId     String
-  criadaEm        DateTime    @default(now())
+  id        String      @id @default(uuid())
+  enunciado String
+  tipo      TipoQuestao
+
+  // Dados necessários para montar o minijogo
+  configuracao Json
+
+  // Resposta esperada; nula para questão textual manual
+  respostaCorreta Json?
+
+  // Só será preenchido nas questões de resposta textual
+  modoCorrecaoTexto ModoCorrecaoTexto?
+
+  // Explicação opcional apresentada no feedback
+  explicacao String?
+
+  // Valor individual da questão
+  valor Float @default(1)
+
+  ordem       Int
+  atividadeId String
+  criadaEm    DateTime @default(now())
 
   atividade Atividade  @relation(fields: [atividadeId], references: [id], onDelete: Cascade)
   respostas Resposta[]
@@ -107,37 +160,97 @@ model Questao {
   @@map("questoes")
 }
 
+// Realizações de atividades pelos alunos
 model Tentativa {
-  id                String   @id @default(uuid())
-  alunoId           String
-  atividadeId       String
-  questoesAcertadas Int
-  totalQuestoes     Int
-  percentualAcerto  Float
-  concluidaEm       DateTime @default(now())
+  id          String @id @default(uuid())
+  alunoId     String
+  atividadeId String
 
-  aluno     User       @relation(fields: [alunoId], references: [id], onDelete: Restrict)
-  atividade Atividade  @relation(fields: [atividadeId], references: [id], onDelete: Restrict)
+  // Primeira tentativa = 1; as próximas são autorizadas pelo professor
+  numero Int @default(1)
+
+  status StatusTentativa @default(EM_ANDAMENTO)
+
+  // Dados calculados após a correção
+  questoesAcertadas Int?
+  totalQuestoes     Int?
+  pontosObtidos     Float?
+  pontosTotais      Float?
+  percentualNota    Float?
+
+  iniciadaEm  DateTime  @default(now())
+  enviadaEm   DateTime?
+  concluidaEm DateTime?
+
+  // Nulo na primeira tentativa
+  liberacaoId String? @unique
+
+  aluno User @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+
+  atividade Atividade @relation(fields: [atividadeId], references: [id], onDelete: Restrict)
+
+  liberacao LiberacaoTentativa? @relation(fields: [liberacaoId], references: [id], onDelete: Restrict)
   respostas Resposta[]
 
+  @@unique([alunoId, atividadeId, numero])
   @@index([alunoId])
   @@index([atividadeId])
-  @@index([alunoId, atividadeId])
+  @@index([status])
   @@map("tentativas")
 }
 
+// Respostas enviadas pelos alunos
 model Resposta {
-  id           String   @id @default(uuid())
-  tentativaId  String
-  questaoId    String
-  resposta     Json
-  correta      Boolean
+  id          String @id @default(uuid())
+  tentativaId String
+  questaoId   String
+
+  // Conteúdo enviado pelo aluno
+  resposta Json
+
+  // Nulos enquanto a resposta aguarda correção manual
+  correta       Boolean?
+  pontosObtidos Float?
+
+  // Informações da avaliação do professor
+  comentarioProfessor String?
+  corrigidaEm         DateTime?
+  corrigidaPorId      String?
+
   respondidaEm DateTime @default(now())
 
   tentativa Tentativa @relation(fields: [tentativaId], references: [id], onDelete: Cascade)
-  questao   Questao   @relation(fields: [questaoId], references: [id], onDelete: Restrict)
+
+  questao Questao @relation(fields: [questaoId], references: [id], onDelete: Restrict)
+
+  corrigidaPor User? @relation("ProfessorResposta", fields: [corrigidaPorId], references: [id], onDelete: SetNull)
 
   @@unique([tentativaId, questaoId])
   @@index([questaoId])
+  @@index([corrigidaPorId])
   @@map("respostas")
+}
+
+// Autorizações para o aluno realizar novas tentativas
+model LiberacaoTentativa {
+  id          String @id @default(uuid())
+  atividadeId String
+  alunoId     String
+  professorId String
+
+  motivo      String?
+  criadaEm    DateTime  @default(now())
+  utilizadaEm DateTime?
+
+  atividade Atividade @relation(fields: [atividadeId], references: [id], onDelete: Cascade)
+
+  aluno User @relation("AlunoLiberacoes", fields: [alunoId], references: [id], onDelete: Cascade)
+
+  professor User @relation("ProfessorLiberacoes", fields: [professorId], references: [id], onDelete: Restrict)
+
+  tentativa Tentativa?
+
+  @@index([atividadeId, alunoId, utilizadaEm])
+  @@index([professorId])
+  @@map("liberacoes_tentativas")
 }

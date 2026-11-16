@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.ts";
+import turmasRoutes from "./routes/turmas.routes.ts";
 import { prisma } from "./prisma.ts";
 
 const app = express();
@@ -31,6 +32,7 @@ app.get("/api/health", async (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/turmas", turmasRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Rota não encontrada." });

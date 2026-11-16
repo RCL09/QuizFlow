@@ -2,6 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "../prisma.ts";
+import { autenticar } from "../middlewares/auth.middleware.ts";
 
 const router = Router();
 
@@ -175,6 +176,50 @@ router.post("/login", async (req, res) => {
     console.error("Erro ao realizar login:", error);
     res.status(500).json({
       message: "Não foi possível realizar o login. Tente novamente.",
+    });
+  }
+});
+
+router.get("/me", autenticar, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Usuário não autenticado."
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        schoolName: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Usuário não encontrado."
+      });
+    }
+
+    return res.status(200).json({
+      user: {
+        ...user,
+        role: user.role === "ALUNO" ? "aluno" : "professor"
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao buscar usuário:", error);
+
+    return res.status(500).json({
+      message: "Erro ao consultar usuário."
     });
   }
 });

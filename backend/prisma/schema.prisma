@@ -13,6 +13,14 @@ enum UserRole {
   PROFESSOR
 }
 
+enum TipoQuestao {
+  MULTIPLA_ESCOLHA
+  VERDADEIRO_FALSO
+  RESPOSTA_TEXTO
+  ASSOCIACAO
+  ORDENACAO
+}
+
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -23,6 +31,113 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  turmasCriadas Turma[]      @relation("ProfessorTurmas")
+  turmasAluno   TurmaAluno[]
+  tentativas    Tentativa[]
+
   @@index([role])
   @@map("users")
+}
+
+model Turma {
+  id          String   @id @default(uuid())
+  nome        String
+  descricao   String?
+  codigo      String   @unique
+  professorId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  professor  User         @relation("ProfessorTurmas", fields: [professorId], references: [id], onDelete: Restrict)
+  alunos     TurmaAluno[]
+  atividades Atividade[]
+
+  @@index([professorId])
+  @@map("turmas")
+}
+
+model TurmaAluno {
+  id       String   @id @default(uuid())
+  alunoId  String
+  turmaId  String
+  entrouEm DateTime @default(now())
+
+  aluno User  @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  turma Turma @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, turmaId])
+  @@index([turmaId])
+  @@map("turmas_alunos")
+}
+
+model Atividade {
+  id               String   @id @default(uuid())
+  titulo           String
+  descricao        String?
+  mostrarResultado Boolean  @default(false)
+  publicada        Boolean  @default(false)
+  turmaId          String
+  criadaEm         DateTime @default(now())
+  atualizadaEm     DateTime @updatedAt
+
+  turma      Turma       @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  questoes   Questao[]
+  tentativas Tentativa[]
+
+  @@index([turmaId])
+  @@map("atividades")
+}
+
+model Questao {
+  id              String      @id @default(uuid())
+  enunciado       String
+  tipo            TipoQuestao
+  configuracao    Json
+  respostaCorreta Json
+  valor           Float       @default(1)
+  ordem           Int
+  atividadeId     String
+  criadaEm        DateTime    @default(now())
+
+  atividade Atividade  @relation(fields: [atividadeId], references: [id], onDelete: Cascade)
+  respostas Resposta[]
+
+  @@unique([atividadeId, ordem])
+  @@index([atividadeId])
+  @@map("questoes")
+}
+
+model Tentativa {
+  id                String   @id @default(uuid())
+  alunoId           String
+  atividadeId       String
+  questoesAcertadas Int
+  totalQuestoes     Int
+  percentualAcerto  Float
+  concluidaEm       DateTime @default(now())
+
+  aluno     User       @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+  atividade Atividade  @relation(fields: [atividadeId], references: [id], onDelete: Restrict)
+  respostas Resposta[]
+
+  @@index([alunoId])
+  @@index([atividadeId])
+  @@index([alunoId, atividadeId])
+  @@map("tentativas")
+}
+
+model Resposta {
+  id           String   @id @default(uuid())
+  tentativaId  String
+  questaoId    String
+  resposta     Json
+  correta      Boolean
+  respondidaEm DateTime @default(now())
+
+  tentativa Tentativa @relation(fields: [tentativaId], references: [id], onDelete: Cascade)
+  questao   Questao   @relation(fields: [questaoId], references: [id], onDelete: Restrict)
+
+  @@unique([tentativaId, questaoId])
+  @@index([questaoId])
+  @@map("respostas")
 }

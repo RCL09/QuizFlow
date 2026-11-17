@@ -6,6 +6,7 @@ import turmasRoutes from "./routes/turmas.routes.ts";
 import atividadesRoutes from "./routes/atividades.routes.ts";
 import questoesRoutes from "./routes/questoes.routes.ts";
 import tentativasRoutes from "./routes/tentativas.routes.ts";
+import resultadosRoutes from "./routes/resultados.routes.ts";
 import { prisma } from "./prisma.ts";
 
 const app = express();
@@ -39,6 +40,7 @@ app.use("/api/turmas", turmasRoutes);
 app.use("/api", atividadesRoutes);
 app.use("/api", questoesRoutes);
 app.use("/api", tentativasRoutes);
+app.use("/api", resultadosRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Rota não encontrada." });

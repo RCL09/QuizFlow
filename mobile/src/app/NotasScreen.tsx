@@ -88,7 +88,7 @@ export default function NotasScreen({ userName = "Ana", authToken, onLogout }: P
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F1FB" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Topo */}

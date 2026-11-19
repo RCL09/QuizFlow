@@ -31,7 +31,7 @@ export default function AlunoApp({ userName = "Aluno", authToken, onLogout }: Pr
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F1FB" />
+      <StatusBar barStyle="dark-content" />
 
       <View style={styles.content}>
         {tab === "turmas" && (

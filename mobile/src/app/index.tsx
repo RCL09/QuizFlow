@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import AlunoApp from "./AlunoApp";
+import ProfessorInicioScreen from "./ProfessorInicioScreen";
 
 
 type AuthTab = "login" | "register";
@@ -147,6 +148,10 @@ export default function IndexScreen() {
       />
     );
   }
+
+  if (authToken && role === "professor") {
+  return <ProfessorInicioScreen nomeProfessor={name || "Professor"} />;
+}
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />

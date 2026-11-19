@@ -118,7 +118,7 @@ export default function TurmasScreen({ userName = "Ana", authToken, onLogout }: 
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F7F5FD" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         {/* Topo */}

@@ -45,13 +45,6 @@ export default function IndexScreen() {
     setMessage("");
   }
 
-  function fillDemo() {
-    setEmail(role === "aluno" ? "aluno@quizflow.com" : "professor@quizflow.com");
-    setPassword("123456");
-    setMessage("Dados preenchidos. Para entrar, essa conta precisa estar cadastrada no banco de dados.");
-    setMessageIsError(false);
-  }
-
   async function handleSubmit() {
     setMessage("");
     setMessageIsError(false);
@@ -179,7 +172,7 @@ export default function IndexScreen() {
                 Entre na sua conta e continue sua jornada de aprendizado com quizzes e desafios.
               </Text>
               <View style={styles.decorRow}>
-                <View style={[styles.decorShape, styles.decorBlue]}>
+                <View style={[styles.decorShape, styles.decorPurple]}>
                   <Text style={styles.decorEmoji}>✦</Text>
                 </View>
                 <View style={[styles.decorShape, styles.decorGreen]}>
@@ -396,12 +389,6 @@ export default function IndexScreen() {
                 )}
               </Pressable>
 
-              {authTab === "login" && (
-                <Pressable onPress={fillDemo} style={styles.demoButton}>
-                  <Text style={styles.demoButtonText}>Preencher dados de demonstração</Text>
-                </Pressable>
-              )}
-
               <View style={styles.footerRow}>
                 <Text style={styles.footerText}>
                   {authTab === "login" ? "Ainda não tem uma conta? " : "Já tem uma conta? "}
@@ -423,78 +410,76 @@ export default function IndexScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#F4F8FF" },
+  safeArea: { flex: 1, backgroundColor: "#F4F1FB" },
   keyboardView: { flex: 1 },
   scrollContent: { flexGrow: 1 },
   page: { width: "100%", maxWidth: 560, alignSelf: "center", paddingHorizontal: 22, paddingTop: 18, paddingBottom: 28 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 28 },
-  logo: { width: 42, height: 42, borderRadius: 14, backgroundColor: "#2563EB", alignItems: "center", justifyContent: "center", shadowColor: "#2563EB", shadowOpacity: 0.22, shadowRadius: 9, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
+  logo: { width: 42, height: 42, borderRadius: 14, backgroundColor: "#5856D6", alignItems: "center", justifyContent: "center", shadowColor: "#5856D6", shadowOpacity: 0.22, shadowRadius: 9, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   logoText: { color: "#FFFFFF", fontSize: 25, fontWeight: "900" },
   brandName: { color: "#172B4D", fontSize: 24, fontWeight: "800", letterSpacing: -0.8 },
-  brandAccent: { color: "#2563EB" },
+  brandAccent: { color: "#5856D6" },
   hero: { marginBottom: 22 },
   eyebrow: { flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 8 },
   eyebrowDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#22C55E" },
   eyebrowText: { color: "#4B6587", fontSize: 10, fontWeight: "800", letterSpacing: 1.3 },
   heroTitle: { color: "#172B4D", fontSize: 34, lineHeight: 40, fontWeight: "800", letterSpacing: -1.2 },
-  heroHighlight: { color: "#2563EB" },
+  heroHighlight: { color: "#5856D6" },
   heroSubtitle: { color: "#64748B", fontSize: 14, lineHeight: 21, marginTop: 10, maxWidth: 430 },
   decorRow: { flexDirection: "row", alignItems: "center", marginTop: 17, gap: 8 },
   decorShape: { width: 30, height: 30, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  decorBlue: { backgroundColor: "#DBEAFE" },
+  decorPurple: { backgroundColor: "#E6DEFA" },
   decorGreen: { backgroundColor: "#DCFCE7" },
   decorYellow: { backgroundColor: "#FEF3C7" },
-  decorEmoji: { fontSize: 16, fontWeight: "800", color: "#1D4ED8" },
+  decorEmoji: { fontSize: 16, fontWeight: "800", color: "#5856D6" },
   decorCaption: { marginLeft: 3, fontSize: 12, color: "#718096", fontWeight: "600" },
   card: { backgroundColor: "#FFFFFF", borderRadius: 24, padding: 22, borderWidth: 1, borderColor: "#E4EBF5", shadowColor: "#17365D", shadowOpacity: 0.07, shadowRadius: 22, shadowOffset: { width: 0, height: 9 }, elevation: 3 },
   cardHeading: { marginBottom: 20 },
   cardTitle: { color: "#172B4D", fontSize: 23, fontWeight: "800", letterSpacing: -0.5 },
   cardSubtitle: { color: "#7A8799", fontSize: 13, marginTop: 6, lineHeight: 19 },
-  tabs: { flexDirection: "row", padding: 4, backgroundColor: "#F1F5FB", borderRadius: 13, marginBottom: 22 },
+  tabs: { flexDirection: "row", padding: 4, backgroundColor: "#F4F1FB", borderRadius: 13, marginBottom: 22 },
   tab: { flex: 1, paddingVertical: 11, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   activeTab: { backgroundColor: "#FFFFFF", shadowColor: "#1E293B", shadowOpacity: 0.08, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   tabText: { color: "#7A8799", fontSize: 14, fontWeight: "700" },
-  activeTabText: { color: "#2563EB" },
+  activeTabText: { color: "#5856D6" },
   fieldLabel: { color: "#52647D", fontSize: 10, fontWeight: "800", letterSpacing: 1, marginBottom: 9 },
   roleRow: { gap: 10, marginBottom: 20 },
   roleButton: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, padding: 12, backgroundColor: "#FFFFFF" },
-  roleButtonActive: { borderColor: "#7AA7FF", backgroundColor: "#F5F8FF" },
+  roleButtonActive: { borderColor: "#B7A9EA", backgroundColor: "#F6F3FF" },
   roleIcon: { fontSize: 22, marginRight: 11 },
   roleCopy: { flex: 1 },
   roleTitle: { color: "#334155", fontSize: 13, fontWeight: "800" },
-  roleTitleActive: { color: "#1D4ED8" },
+  roleTitleActive: { color: "#4B2FA0" },
   roleDescription: { color: "#8995A6", fontSize: 11, marginTop: 3 },
   radio: { width: 19, height: 19, borderRadius: 10, borderWidth: 1.5, borderColor: "#CBD5E1", alignItems: "center", justifyContent: "center" },
-  radioActive: { borderColor: "#2563EB" },
-  radioInner: { width: 9, height: 9, borderRadius: 5, backgroundColor: "#2563EB" },
+  radioActive: { borderColor: "#5856D6" },
+  radioInner: { width: 9, height: 9, borderRadius: 5, backgroundColor: "#5856D6" },
   fieldGroup: { marginBottom: 16 },
   input: { minHeight: 49, borderWidth: 1, borderColor: "#DDE5F0", borderRadius: 12, paddingHorizontal: 14, color: "#1E293B", fontSize: 14, backgroundColor: "#FFFFFF" },
   passwordContainer: { minHeight: 49, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#DDE5F0", borderRadius: 12, paddingHorizontal: 14, backgroundColor: "#FFFFFF" },
   passwordInput: { flex: 1, minHeight: 47, color: "#1E293B", fontSize: 14, paddingVertical: 8 },
-  showPassword: { color: "#2563EB", fontSize: 12, fontWeight: "700", marginLeft: 8 },
+  showPassword: { color: "#5856D6", fontSize: 12, fontWeight: "700", marginLeft: 8 },
   optionsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginTop: 1, marginBottom: 20 },
   rememberRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16 },
   checkbox: { width: 17, height: 17, borderRadius: 5, borderWidth: 1.4, borderColor: "#C6D2E2", alignItems: "center", justifyContent: "center", backgroundColor: "#FFFFFF" },
-  checkboxActive: { backgroundColor: "#2563EB", borderColor: "#2563EB" },
+  checkboxActive: { backgroundColor: "#5856D6", borderColor: "#5856D6" },
   checkmark: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
   rememberText: { color: "#64748B", fontSize: 12 },
-  linkText: { color: "#2563EB", fontSize: 12, fontWeight: "700" },
+  linkText: { color: "#5856D6", fontSize: 12, fontWeight: "700" },
   termsText: { flex: 1, color: "#64748B", fontSize: 12, lineHeight: 18 },
   messageBox: { borderRadius: 10, padding: 11, marginBottom: 14 },
   errorBox: { backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA" },
-  successBox: { backgroundColor: "#EFF6FF", borderWidth: 1, borderColor: "#BFDBFE" },
+  successBox: { backgroundColor: "#F4F1FB", borderWidth: 1, borderColor: "#D8CEF3" },
   messageText: { fontSize: 12, lineHeight: 18 },
   sessionHint: { color: "#15803D", fontSize: 11, fontWeight: "700", marginBottom: 10 },
   errorText: { color: "#B91C1C" },
-  successText: { color: "#1D4ED8" },
-  submitButton: { minHeight: 51, borderRadius: 13, backgroundColor: "#2563EB", alignItems: "center", justifyContent: "center", paddingHorizontal: 16, shadowColor: "#2563EB", shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  successText: { color: "#4B2FA0" },
+  submitButton: { minHeight: 51, borderRadius: 13, backgroundColor: "#5856D6", alignItems: "center", justifyContent: "center", paddingHorizontal: 16, shadowColor: "#5856D6", shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   submitPressed: { opacity: 0.88, transform: [{ scale: 0.99 }] },
   submitDisabled: { opacity: 0.65 },
   submitText: { color: "#FFFFFF", fontSize: 14, fontWeight: "800" },
-  demoButton: { alignItems: "center", paddingVertical: 13, marginTop: 4 },
-  demoButtonText: { color: "#64748B", fontSize: 12, fontWeight: "700", textDecorationLine: "underline" },
   footerRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", marginTop: 14 },
   footerText: { color: "#7A8799", fontSize: 12 },
-  footerLink: { color: "#2563EB", fontSize: 12, fontWeight: "800" },
+  footerLink: { color: "#5856D6", fontSize: 12, fontWeight: "800" },
   bottomNote: { textAlign: "center", marginTop: 22, color: "#9AA8BA", fontSize: 9, fontWeight: "800", letterSpacing: 1.4 },
 });

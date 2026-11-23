@@ -485,4 +485,287 @@ router.patch(
   }
 );
 
+
+router.patch(
+  "/questoes/:questaoId",
+  autenticar,
+  permitirRoles("PROFESSOR"),
+  async (req, res) => {
+    try {
+      const professorId = req.user?.id;
+      const questaoId = String(
+        req.params.questaoId ?? ""
+      ).trim();
+
+      const body = req.body ?? {};
+
+      if (!professorId) {
+        return res.status(401).json({
+          message: "Usuário não autenticado.",
+        });
+      }
+
+      const questao = await prisma.questao.findFirst({
+        where: {
+          id: questaoId,
+          atividade: {
+            turma: {
+              professorId,
+            },
+          },
+        },
+        include: {
+          atividade: {
+            select: {
+              id: true,
+              publicada: true,
+            },
+          },
+        },
+      });
+
+      if (!questao) {
+        return res.status(404).json({
+          message: "Questão não encontrada ou você não tem acesso a ela.",
+        });
+      }
+
+      if (questao.atividade.publicada) {
+        return res.status(409).json({
+          message: "Não é possível editar questões de uma atividade publicada.",
+        });
+      }
+
+      if (
+        body.tipo !== undefined &&
+        body.tipo !== questao.tipo
+      ) {
+        return res.status(400).json({
+          message: "Para alterar o tipo, remova e cadastre uma nova questão.",
+        });
+      }
+
+      if (
+        body.modoCorrecaoTexto !== undefined &&
+        body.modoCorrecaoTexto !== questao.modoCorrecaoTexto
+      ) {
+        return res.status(400).json({
+          message: "Para alterar o modo de correção, remova e cadastre uma nova questão.",
+        });
+      }
+
+      const totalTentativas = await prisma.tentativa.count({
+        where: {
+          atividadeId: questao.atividadeId,
+        },
+      });
+
+      if (totalTentativas > 0) {
+        return res.status(409).json({
+          message: "A atividade possui tentativas registradas e não pode ter suas questões alteradas.",
+        });
+      }
+
+      const dadosFinais = {
+        enunciado:
+          body.enunciado !== undefined
+            ? body.enunciado
+            : questao.enunciado,
+
+        tipo: questao.tipo,
+
+        configuracao:
+          body.configuracao !== undefined
+            ? body.configuracao
+            : questao.configuracao,
+
+        respostaCorreta:
+          body.respostaCorreta !== undefined
+            ? body.respostaCorreta
+            : questao.respostaCorreta,
+
+        modoCorrecaoTexto: questao.modoCorrecaoTexto,
+      };
+
+      const erro = validarQuestao(dadosFinais);
+
+      if (erro) {
+        return res.status(400).json({
+          message: erro,
+        });
+      }
+
+      const dadosAtualizacao: any = {};
+
+      if (body.enunciado !== undefined) {
+        dadosAtualizacao.enunciado = body.enunciado.trim();
+      }
+
+      if (body.configuracao !== undefined) {
+        dadosAtualizacao.configuracao = body.configuracao;
+      }
+
+      if (body.respostaCorreta !== undefined) {
+        dadosAtualizacao.respostaCorreta = body.respostaCorreta;
+      }
+
+      if (body.explicacao !== undefined) {
+        if (
+          body.explicacao !== null &&
+          typeof body.explicacao !== "string"
+        ) {
+          return res.status(400).json({
+            message: "A explicação deve ser um texto válido.",
+          });
+        }
+
+        dadosAtualizacao.explicacao =
+          typeof body.explicacao === "string" &&
+          body.explicacao.trim()
+            ? body.explicacao.trim()
+            : null;
+      }
+
+      if (body.valor !== undefined) {
+        if (
+          typeof body.valor !== "number" ||
+          !Number.isFinite(body.valor) ||
+          body.valor <= 0
+        ) {
+          return res.status(400).json({
+            message: "O valor deve ser maior que zero.",
+          });
+        }
+
+        dadosAtualizacao.valor = body.valor;
+      }
+
+      if (body.ordem !== undefined) {
+        if (
+          !Number.isInteger(body.ordem) ||
+          body.ordem <= 0
+        ) {
+          return res.status(400).json({
+            message: "A ordem deve ser um número inteiro positivo.",
+          });
+        }
+
+        dadosAtualizacao.ordem = body.ordem;
+      }
+
+      if (Object.keys(dadosAtualizacao).length === 0) {
+        return res.status(400).json({
+          message: "Informe pelo menos um campo para atualizar.",
+        });
+      }
+
+      const questaoAtualizada = await prisma.questao.update({
+        where: {
+          id: questaoId,
+        },
+        data: dadosAtualizacao,
+      });
+
+      return res.status(200).json({
+        message: "Questão atualizada com sucesso!",
+        questao: questaoAtualizada,
+      });
+    } catch (error) {
+      const knownError = error as { code?: string };
+
+      if (knownError.code === "P2002") {
+        return res.status(409).json({
+          message: "Já existe uma questão com essa ordem na atividade.",
+        });
+      }
+
+      console.error("Erro ao atualizar questão:", error);
+
+      return res.status(500).json({
+        message: "Não foi possível atualizar a questão.",
+      });
+    }
+  }
+);
+
+router.delete(
+  "/questoes/:questaoId",
+  autenticar,
+  permitirRoles("PROFESSOR"),
+  async (req, res) => {
+    try {
+      const professorId = req.user?.id;
+      const questaoId = String(
+        req.params.questaoId ?? ""
+      ).trim();
+
+      if (!professorId) {
+        return res.status(401).json({
+          message: "Usuário não autenticado.",
+        });
+      }
+
+      const questao = await prisma.questao.findFirst({
+        where: {
+          id: questaoId,
+          atividade: {
+            turma: {
+              professorId,
+            },
+          },
+        },
+        include: {
+          atividade: {
+            select: {
+              id: true,
+              publicada: true,
+            },
+          },
+        },
+      });
+
+      if (!questao) {
+        return res.status(404).json({
+          message: "Questão não encontrada ou você não tem acesso a ela.",
+        });
+      }
+
+      if (questao.atividade.publicada) {
+        return res.status(409).json({
+          message: "Não é possível remover questões de uma atividade publicada.",
+        });
+      }
+
+      const totalTentativas = await prisma.tentativa.count({
+        where: {
+          atividadeId: questao.atividadeId,
+        },
+      });
+
+      if (totalTentativas > 0) {
+        return res.status(409).json({
+          message: "A atividade possui tentativas registradas e não pode ter questões removidas.",
+        });
+      }
+
+      await prisma.questao.delete({
+        where: {
+          id: questaoId,
+        },
+      });
+
+      return res.status(200).json({
+        message: "Questão removida com sucesso!",
+        questaoId,
+      });
+    } catch (error) {
+      console.error("Erro ao remover questão:", error);
+
+      return res.status(500).json({
+        message: "Não foi possível remover a questão.",
+      });
+    }
+  }
+);
+
 export default router;
